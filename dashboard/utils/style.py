@@ -558,6 +558,41 @@ section[data-testid="stSidebar"], [data-testid="collapsedControl"] {{
     font-weight: 600 !important;
 }}
 
+/* confirm-passphrase button, ghost amber pill, full width for easy tapping */
+[data-testid="stFormSubmitButton"] {{
+    display: flex;
+    justify-content: center;
+    margin: 0.6rem auto 0.2rem;
+}}
+[data-testid="stFormSubmitButton"] button {{
+    background: transparent !important;
+    color: {COLORS['accent']} !important;
+    border: 1px solid {COLORS['accent']} !important;
+    border-radius: 999px !important;
+    padding: 0.8rem 2rem !important;
+    width: 100% !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.8rem !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    font-weight: 600 !important;
+    transition: background 200ms ease, transform 200ms cubic-bezier(0.2,0.8,0.2,1) !important;
+}}
+[data-testid="stFormSubmitButton"] button:hover {{
+    background: rgba(245,158,11,0.12) !important;
+    transform: translateY(-1px) !important;
+    color: {COLORS['accent']} !important;
+    border-color: {COLORS['accent']} !important;
+}}
+[data-testid="stFormSubmitButton"] button p {{
+    font-family: 'JetBrains Mono', monospace !important;
+    font-weight: 600 !important;
+}}
+[data-testid="stForm"] {{
+    border: none !important;
+    padding: 0 !important;
+}}
+
 /* passphrase gate input, themed to the page */
 [data-testid="stTextInput"] input {{
     background: {COLORS['surface']} !important;

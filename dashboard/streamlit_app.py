@@ -1037,24 +1037,31 @@ with _gc:
             "`utils.data.write_encrypted_bundle(passphrase)`."
         )
     else:
-        _pw = st.text_input(
-            "passphrase", type="password",
-            placeholder="enter the passphrase to unlock the download",
-            label_visibility="collapsed",
-        )
-        if _pw:
+        # a form so an explicit button confirms the passphrase. on mobile the
+        # on-screen keyboard has no reliable submit, so the button matters; the
+        # field still submits on enter too. the unlocked bundle is kept in
+        # session_state so the download button survives the rerun.
+        with st.form("unlock_bundle", clear_on_submit=False, border=False):
+            _pw = st.text_input(
+                "passphrase", type="password",
+                placeholder="enter the passphrase",
+                label_visibility="collapsed",
+            )
+            _submit = st.form_submit_button("confirm passphrase")
+        if _submit:
             try:
-                _data = decrypt_bytes(_enc, _pw)
+                st.session_state["bundle_data"] = decrypt_bytes(_enc, _pw)
             except InvalidToken:
+                st.session_state.pop("bundle_data", None)
                 st.error("wrong passphrase, the bundle stays locked.")
-            else:
-                st.success("unlocked.")
-                st.download_button(
-                    label="download the full project  (.zip)",
-                    data=_data,
-                    file_name="cameroon_food_prices_project.zip",
-                    mime="application/zip",
-                )
+        if st.session_state.get("bundle_data"):
+            st.success("unlocked.")
+            st.download_button(
+                label="download the full project  (.zip)",
+                data=st.session_state["bundle_data"],
+                file_name="cameroon_food_prices_project.zip",
+                mime="application/zip",
+            )
 
 st.markdown(
     """
