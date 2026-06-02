@@ -60,7 +60,7 @@ opens at http://localhost:8501.
 3. click "new app", pick the repo and branch.
 4. set the main file path to `dashboard/streamlit_app.py`.
 5. deploy. streamlit installs `dashboard/requirements.txt` and reads the dark
-   theme from `.streamlit/config.toml` at the repo root.
+   theme from `.streamlit/c onfig.toml` at the repo root.
 
 the relative paths resolve from the repo root, so the charts and the download
 bundle work without any change.

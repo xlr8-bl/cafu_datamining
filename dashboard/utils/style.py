@@ -523,11 +523,16 @@ section[data-testid="stSidebar"], [data-testid="collapsedControl"] {{
     margin: 2.5rem 0 0.5rem;
 }}
 
-/* download button, amber, centered */
+/* download button, amber, centered. the element container and the button
+   wrapper are both forced full-width so the flex centering has room to work. */
 [data-testid="stDownloadButton"] {{
-    display: flex;
-    justify-content: center;
-    margin: 1rem auto 1rem;
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+    margin: 1rem auto 1rem !important;
+}}
+[data-testid="stElementContainer"]:has([data-testid="stDownloadButton"]) {{
+    width: 100% !important;
 }}
 [data-testid="stDownloadButton"] button {{
     background: {COLORS['accent']} !important;

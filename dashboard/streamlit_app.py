@@ -1027,12 +1027,14 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-st.download_button(
-    label="download the full project  (.zip)",
-    data=build_bundle(),
-    file_name="cameroon_food_prices_project.zip",
-    mime="application/zip",
-)
+_dl_l, _dl_c, _dl_r = st.columns([1, 2, 1])
+with _dl_c:
+    st.download_button(
+        label="download the full project  (.zip)",
+        data=build_bundle(),
+        file_name="cameroon_food_prices_project.zip",
+        mime="application/zip",
+    )
 
 st.markdown(
     """
