@@ -21,23 +21,27 @@ folder. the classifier and forecaster retrain on first load and then cache.
 each chapter shows a short, faithful code snippet from the matching notebook,
 so the page walks through all five notebooks, not just their results.
 
-## the download bundle
+## the download bundle (encrypted)
 
-the conclusion has a download button that zips, in memory, the complete
-project: the five notebooks, the cleaned dataset, the original raw export,
-and the written report. it is built at runtime (`utils/data.build_bundle`),
-so nothing binary has to be committed and the download is always current.
+the conclusion has a passphrase gate. the complete project — the five
+notebooks, the cleaned dataset, the original raw export, the written report,
+and the slide deck — is zipped and encrypted with the python `cryptography`
+library (fernet, with a PBKDF2-HMAC-SHA256 key derived from a passphrase).
+only the encrypted file `cameroon_food_prices_project.zip.enc` is committed;
+the passphrase is never stored in the source. when a visitor types the
+correct passphrase the app decrypts the bundle in memory and reveals the
+download; a wrong passphrase raises `InvalidToken` and stays locked.
 
-to build the same archive by hand from the project root, in powershell:
+to regenerate the encrypted bundle after changing the notebooks, data, report
+or deck, from inside `dashboard/`:
 
-```powershell
-$files = @(
-  '01_data_exploration.ipynb','02_classification.ipynb','03_clustering.ipynb',
-  '04_prediction.ipynb','05_pattern_discovery.ipynb',
-  'wfp_food_prices_clean.csv','wfp_food_prices_cameroon.csv','report 2.docx'
-)
-Compress-Archive -Path $files -DestinationPath 'cameroon_food_prices_project.zip' -Force
+```python
+from utils.data import write_encrypted_bundle
+write_encrypted_bundle("YOUR-PASSPHRASE")   # rewrites the .enc file
 ```
+
+(the project files themselves still live in the repo so the app can run and
+rebuild the bundle; the encryption protects the packaged download.)
 
 ## how to run locally
 

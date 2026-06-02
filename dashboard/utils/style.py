@@ -558,6 +558,27 @@ section[data-testid="stSidebar"], [data-testid="collapsedControl"] {{
     font-weight: 600 !important;
 }}
 
+/* passphrase gate input, themed to the page */
+[data-testid="stTextInput"] input {{
+    background: {COLORS['surface']} !important;
+    border: 1px solid {COLORS['border']} !important;
+    border-radius: 999px !important;
+    color: {COLORS['text']} !important;
+    text-align: center !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    letter-spacing: 0.08em !important;
+    padding: 0.7rem 1.2rem !important;
+}}
+[data-testid="stTextInput"] input:focus {{
+    border-color: {COLORS['accent']} !important;
+    box-shadow: 0 0 0 3px rgba(245,158,11,0.18) !important;
+}}
+[data-testid="stAlert"] {{
+    border-radius: 12px !important;
+    max-width: 520px;
+    margin: 0.5rem auto !important;
+}}
+
 /* scroll-driven entry animations using view-timeline (Chrome 115+, Edge) */
 @supports (animation-timeline: view()) {{
     [data-testid="stPlotlyChart"] {{

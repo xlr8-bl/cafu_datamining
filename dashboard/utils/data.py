@@ -1,10 +1,15 @@
 """data and model loading with caching. mirrors what's in the notebooks."""
 import io
+import os
+import base64
 import zipfile
 import numpy as np
 import pandas as pd
 import streamlit as st
 from pathlib import Path
+from cryptography.fernet import Fernet, InvalidToken
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.decomposition import PCA
@@ -26,14 +31,14 @@ BUNDLE_FILES = [
     "wfp_food_prices_clean.csv",
     "wfp_food_prices_cameroon.csv",
     "report 2.docx",
+    "presentation 3.pptx",
 ]
 
 
 @st.cache_data(show_spinner=False)
 def build_bundle():
-    """zip the notebooks, both datasets and the report into one archive,
-    built in memory so it works on streamlit community cloud without
-    committing a binary zip to the repo."""
+    """zip the notebooks, both datasets, the report and the deck into one
+    archive, built in memory. used to produce the encrypted bundle below."""
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         for name in BUNDLE_FILES:
@@ -42,6 +47,50 @@ def build_bundle():
                 z.write(path, arcname=name)
     buf.seek(0)
     return buf.getvalue()
+
+
+# ---- encryption -------------------------------------------------------------
+# the downloadable bundle is shipped encrypted (cryptography / fernet). the
+# passphrase is NEVER stored in the source: only the salt + ciphertext live in
+# the committed .enc file, and the app decrypts on demand when the user types
+# the right passphrase. a wrong passphrase raises InvalidToken.
+ENC_PATH = ROOT / "cameroon_food_prices_project.zip.enc"
+PBKDF2_ITERATIONS = 480_000
+SALT_BYTES = 16
+
+
+def _derive_key(password: str, salt: bytes) -> bytes:
+    """turn a human passphrase into a 32-byte fernet key via PBKDF2-HMAC-SHA256."""
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32,
+                     salt=salt, iterations=PBKDF2_ITERATIONS)
+    return base64.urlsafe_b64encode(kdf.derive(password.encode("utf-8")))
+
+
+def encrypt_bytes(data: bytes, password: str) -> bytes:
+    """encrypt with a fresh random salt; output is salt (16 bytes) + token."""
+    salt = os.urandom(SALT_BYTES)
+    token = Fernet(_derive_key(password, salt)).encrypt(data)
+    return salt + token
+
+
+def decrypt_bytes(blob: bytes, password: str) -> bytes:
+    """reverse encrypt_bytes. raises cryptography.fernet.InvalidToken if the
+    passphrase is wrong or the data was tampered with."""
+    salt, token = blob[:SALT_BYTES], blob[SALT_BYTES:]
+    return Fernet(_derive_key(password, salt)).decrypt(token)
+
+
+@st.cache_data(show_spinner=False)
+def load_encrypted_bundle():
+    """read the committed encrypted bundle (salt + ciphertext) from disk."""
+    return ENC_PATH.read_bytes() if ENC_PATH.exists() else None
+
+
+def write_encrypted_bundle(password: str):
+    """one-off: encrypt the current bundle with the given passphrase and write
+    the .enc file. run this whenever the notebooks, data, report or deck change."""
+    ENC_PATH.write_bytes(encrypt_bytes(build_bundle(), password))
+    return ENC_PATH
 
 
 @st.cache_data(show_spinner=False)

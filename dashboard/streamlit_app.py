@@ -13,7 +13,7 @@ from utils.style import inject_shell, COLORS, PLOTLY_TEMPLATE
 from utils.data import (
     load_prices, summary_stats,
     train_classifier, fit_clusters, train_forecaster,
-    build_bundle,
+    load_encrypted_bundle, decrypt_bytes, InvalidToken,
 )
 
 
@@ -1017,24 +1017,44 @@ st.markdown(
     """
 <div class="reveal" style="text-align:center; max-width:640px; margin:2rem auto 0; padding:0 2rem;">
     <div class="section-label" style="margin-top:0;">take it with you</div>
-    <div class="section-title" style="max-width:30ch;">the whole project, in one download</div>
+    <div class="section-title" style="max-width:30ch;">the whole project, encrypted</div>
     <div class="section-desc">
         the five jupyter notebooks, the cleaned dataset, the original raw
-        export, and the full written report, zipped together. everything
-        behind this story.
+        export, the full written report, and the slide deck, zipped and
+        encrypted with the cryptography library. enter the passphrase to
+        unlock the download.
     </div>
 </div>
     """,
     unsafe_allow_html=True,
 )
-_dl_l, _dl_c, _dl_r = st.columns([1, 2, 1])
-with _dl_c:
-    st.download_button(
-        label="download the full project  (.zip)",
-        data=build_bundle(),
-        file_name="cameroon_food_prices_project.zip",
-        mime="application/zip",
-    )
+_gl, _gc, _gr = st.columns([1, 2, 1])
+with _gc:
+    _enc = load_encrypted_bundle()
+    if _enc is None:
+        st.warning(
+            "encrypted bundle not found. generate it with "
+            "`utils.data.write_encrypted_bundle(passphrase)`."
+        )
+    else:
+        _pw = st.text_input(
+            "passphrase", type="password",
+            placeholder="enter the passphrase to unlock the download",
+            label_visibility="collapsed",
+        )
+        if _pw:
+            try:
+                _data = decrypt_bytes(_enc, _pw)
+            except InvalidToken:
+                st.error("wrong passphrase, the bundle stays locked.")
+            else:
+                st.success("unlocked.")
+                st.download_button(
+                    label="download the full project  (.zip)",
+                    data=_data,
+                    file_name="cameroon_food_prices_project.zip",
+                    mime="application/zip",
+                )
 
 st.markdown(
     """
